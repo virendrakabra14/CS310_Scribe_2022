@@ -1,0 +1,146 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, top=2cm, bottom=2cm, left=2cm, right=2cm]{geometry}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{subfig}
+\usepackage{tikz}
+% \usepackage{float}
+\usepackage{caption}
+\usetikzlibrary{chains,fit,shapes,automata}
+
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{200050154, 200050157}
+\rhead{CS310}
+\cfoot{\thepage}
+
+\newcommand{\B}[1]{\textbf{#1}}
+\newcommand{\I}[1]{\textit{#1}}
+
+\title{\textbf{CS310 Lecture 14 \\ Introduction to Turing Machines}}
+\author{Vedang Asgaonkar (200050154), Virendra Kabra (200050157)}
+\date{28 September 2022}
+
+\begin{document}
+\begin{sloppypar}       % for overfull, etc.
+
+    \maketitle
+
+    \section{Recap}
+    \begin{itemize}
+        \item We have seen FSA and PDA, and their limitations. For example, $\{a^nb^n\ |\ n\ge1\}$ and $\{a^nb^nc^n\ |\ n\ge1\}$ cannot be expressed using FSA and PDA, respectively.
+        \item Deterministic PDA (DPDA) accept all regular languages, but only a proper subset of CFLs. For instance, $\{ww^R\ |\ w\in\{0,1\}^*\}$ has no DPDA, but is context-free. In this sense, non-deterministic PDA are more powerful than DPDA.
+        \item PDA with two stacks are as powerful as Turing Machines. For example, $\{a^nb^nc^n\ |\ n\ge1\}$ can be expressed as follows: Push $a$'s and $b$'s in separate stacks (ensuring that $b$'s follow $a$'s). For every $c$, pop from each stack. Accept iff both stacks are empty and the entire input string is consumed. Other data structures, such as queues, can also be used.
+    \end{itemize}
+
+    \section{Turing Machines}
+    \begin{itemize}
+        \item Formal notation: 7-tuple $M = (Q,\Sigma,\Gamma,\delta,q_0,B,F)$
+        \begin{itemize}
+            \item $Q$: Finite set of states.
+            \item $\Sigma$: Finite set of input symbols.
+            \item $\Gamma$: Complete set of tape symbols. That is, $\Sigma, B$, and other tape symbols.
+            \item $\delta$: Transition function ($Q\times\Gamma \rightarrow Q\times\Gamma\times\{L,R\}$). This is a partial mapping. $\delta(q,X) = (p,Y,D)$ where $q,X$ are current state and tape symbol, $p,Y,D$ are next state, replacement symbol, and direction, respectively.
+            \item $q_0$: Start state.
+            \item $B$: Blank symbol. $B\in\Gamma, B\notin\Sigma$.
+            \item $F$: Set of final or accepting states.
+        \end{itemize}
+        The tape is divided into \I{cells}, each holding an element of $\Gamma$. The tape can be doubly-infinite, or bounded at one end (this does not change the computational power). The \I{tape head} is always positioned at one of the tape cells.
+
+        \item Instantaneous Description (ID): At any point, the TM can be represented as $X_1X_2\cdots X_{i-1}qX_iX_{i+1}\cdots X_n$, where
+        \begin{itemize}
+            \item $q$ is the current state.
+            \item Tape head points to $X_i$.
+            \item $X_1\cdots X_n$ is the portion of the tape between the leftmost and rightmost blank cells. If the head points to a blank cell, then some prefix or suffix of $X_1\cdots X_n$ will be blank.
+        \end{itemize}
+        ID's are used to describe moves of the TM. If $\delta(q,X_i) = (p,Y,L)$, then $X_1\cdots X_{i-1}qX_{i+1}\cdots X_n \vdash X_1\cdots X_{i-2}pX_{i-1}YX_{i+1}\cdots X_n$. If $i=1$, we get $pBYX_2\cdots X_n$. If $i=n$ and $Y=B$, we get $X_1\cdots X_{n-2}pX_{n-1}$. $\vdash^*$ is used for zero or more moves.
+
+        \item Example: $L = \{0^n1^n\ |\ n\ge1\}$
+        
+        \begin{minipage}{\linewidth}
+
+            \centering
+
+            \begin{tikzpicture}
+
+                    % https://texample.net/tikz/examples/turing-machine-2/
+                    % https://tex.stackexchange.com/questions/49839/turing-machine-figure
+                    % indentation [use minipage]: https://tex.stackexchange.com/questions/54448/
+                    % reference: https://tex.stackexchange.com/questions/315584/
+                    % new line in label: https://tex.stackexchange.com/questions/24372
+                
+                \edef\sizetape{0.6cm}
+                \tikzstyle{tmtape}=[draw,minimum height=\sizetape,rectangle]
+                
+                \begin{scope}[start chain=1 going right,node distance=-0.15mm]
+                    \node [on chain=1,tmtape] (input) {0};
+                    \node [on chain=1,tmtape] {0};
+                    \node [on chain=1,tmtape] {$\cdots$};
+                    \node [on chain=1,tmtape] {0};
+                    \node [on chain=1,tmtape] {1};
+                    \node [on chain=1,tmtape] {1};
+                    \node [on chain=1,tmtape] {$\cdots$};
+                    \node [on chain=1,tmtape] {1};
+                    \node [on chain=1,tmtape] {B};
+                    \node [on chain=1,tmtape] {B};
+                    \node [on chain=1,tmtape] {$\cdots$};
+                    \node [on chain=1,tmtape,below = 0.5cm of input,align=center] (control) {Finite\\control};
+                \end{scope}
+
+                \draw[-latex] (control) -- (input);
+            
+            \end{tikzpicture}
+
+            \label{fig:1}
+
+        \end{minipage}
+        
+        \begin{minipage}{\linewidth}
+
+            \centering
+
+            \begin{tikzpicture}[->,>=stealth,shorten >=1pt,auto,node distance=2cm,semithick,inner sep=2pt,bend angle=45]
+                \node[state,initial] (0) {$q_0$};
+                \node[state] (1) [above right of=0] {$q_1$};
+                \node[state] (2) [below right of=1] {$q_2$};
+                \node[state] (3) [below of=0] {$q_3$};
+                \node[state,accepting] (halt) [right of=3] {$h$};
+                \tikzstyle{every node}=[font=\footnotesize]         % for edge labels
+                \path
+                    (0) edge node {$0|X,R$} (1)
+                        edge node {$Y|Y,R$} (3)
+                    (1) edge [loop above] node[align=center] {$0|0,R$\\$Y|Y,R$} (1)
+                        edge node {$1|Y,L$} (2)
+                    (2) edge node {$X|X,R$} (0)
+                        edge [loop right] node[align=center] {$0|0,L$\\$Y|Y,L$} (2)
+                    (3) edge [loop below] node {$Y|Y,R$} (3)
+                        edge node {$B|B,R$} (halt);
+                    % (C) edge node {0,1,L} (D)
+                        % edge [bend left] node {1,0,R} (E)
+                    % (D) edge [loop below] node {1,1,R} (D)
+                        % edge node {0,1,R} (A)
+                    % (E) edge [bend left] node {1,0,R} (A);
+            \end{tikzpicture}
+
+        \end{minipage}
+
+        \begin{itemize}
+            \item Formally, the TM is $M=(\{q_0,q_1,q_2,q_3,h\},\{0,1\},\{0,1,X,Y,B\},\delta,q_0,B,\{h\})$. $\delta$ is given by the state transitions, and $h$ is the \I{halt state}. A left-bound is assumed on the tape. As mentioned earlier, this has no effect on the computational power.
+            \item Starting at the left end, the loop $q_0-q_1-q_2-q_0$ changes a $0$ to $X$, and moves right over $0$'s and $Y$'s. Then, it changes a corresponding $1$ to $Y$, and moves left over $Y$'s and $0$'s. In this process, if some other symbol is encountered, the machine `crashes'. After finding an $X$, it checks if a $0$ is present at its immediate right. If present, the entire loop repeats. Else, $M$ moves to $q_3$ (if the symbol is a $Y$). Then, after moving right over several $Y$'s, it accepts on a $B$.
+            \item Note: We cannot merge $q_0$ and $q_3$. The resulting TM would accept strings such as $0101\notin L$ too.
+        \end{itemize}
+
+    \end{itemize}
+
+    \section{References}
+    \begin{itemize}
+        \item Section 8.2 of Hopcroft, Motwani, Ullman.
+    \end{itemize}
+
+\end{sloppypar}
+\end{document}
