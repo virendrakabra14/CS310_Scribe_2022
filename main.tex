@@ -1,12 +1,25 @@
 \documentclass{article}
 \usepackage[utf8]{inputenc}
 \usepackage[a4paper, top=2cm, bottom=2cm, left=2cm, right=2cm]{geometry}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{esint}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
 \usepackage{amsmath}
 \usepackage{amsthm}
 \usepackage{amssymb}
-\usepackage{fancyhdr}
-\usepackage{hyperref}
+\usepackage[linesnumbered , ruled , vlined]{algorithm2e}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{floatrow}
 \usepackage{graphicx}
+\usepackage{fancyhdr}
+\usepackage{listings}
+\usepackage{caption}
+\usepackage{hyperref}
 \usepackage{subfig}
 \usepackage{tikz}
 % \usepackage{float}
@@ -137,10 +150,29 @@
 
     \end{itemize}
 
-    \section{References}
-    \begin{itemize}
-        \item Section 8.2 of Hopcroft, Motwani, Ullman.
-    \end{itemize}
+
+
+
+\section{Computing using a Turing Machine}
+Suppose we wish to compute an n-ary function on the Turing machine. Then, the arguments (which are assumed to be integers) are provided on the tape in unary format. The unary alphabet is $\{0\}$ and we seperate the arguments using $1$.
+The function's return value is written at the beginning of the tape when it finishes execution. 
+\newline
+Example: Consider the \textit{monus function}, defined as $f(x_1, x_2) = \max(0, x_1-x_2)$. The following machine will compute the monus function.
+\begin{center}
+    \ffigbox [ 1 \textwidth ]{ \caption{monus function} } { \includegraphics [ width =1 \textwidth ] {monus.jpeg}}   
+\end{center}
+The Turing machine cancels out the $0$'s from the arguments one by one, till one of them runs out. Then it does some tidying up to get the output in the desired format.
+\newline
+Example: Consider a Turing machine that performs addition on positive numbers. To do this, we must simply get rid of the $1$ that seperates the two arguments so that the $0$s become contiguous.
+\begin{center}
+    \ffigbox [ 1 \textwidth ]{ \caption{unary adder} } { \includegraphics [ width =1 \textwidth ] {add.jpeg}}   
+\end{center}
+
+
+\section{References}
+\begin{itemize}
+    \item Section 8.2 of Hopcroft, Motwani, Ullman.
+\end{itemize}
 
 \end{sloppypar}
 \end{document}
